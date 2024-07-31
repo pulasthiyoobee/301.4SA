@@ -1,9 +1,11 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, simpledialog, messagebox
 import socket
 import threading
 
-def receive_messages(client_socket, chat_display):
+client_socket = None
+
+def receive_messages(chat_display):
     while True:
         try:
             msg = client_socket.recv(1024).decode('utf-8')
@@ -13,12 +15,13 @@ def receive_messages(client_socket, chat_display):
         except:
             break
 
-def send_message(client_socket, message_entry):
+def send_message(message_entry):
     msg = message_entry.get()
     client_socket.send(msg.encode('utf-8'))
     message_entry.delete(0, tk.END)
 
 def start_client():
+    global client_socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(("localhost", 9999))
 
@@ -31,10 +34,10 @@ def start_client():
     message_entry = tk.Entry(root)
     message_entry.pack(pady=5)
 
-    send_button = tk.Button(root, text="Send", command=lambda: send_message(client_socket, message_entry))
+    send_button = tk.Button(root, text="Send", command=lambda: send_message(message_entry))
     send_button.pack(pady=5)
 
-    threading.Thread(target=receive_messages, args=(client_socket, chat_display)).start()
+    threading.Thread(target=receive_messages, args=(chat_display,)).start()
 
     root.mainloop()
     client_socket.close()
