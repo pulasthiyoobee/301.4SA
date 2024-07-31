@@ -46,7 +46,7 @@ def start_server():
             client_queue.put(client_socket)
 
     def process_client():
-        while True:
+        if not client_queue.empty():
             client_socket = client_queue.get()
             # Perform user authentication
             auth_window = tk.Toplevel(root)
@@ -77,10 +77,10 @@ def start_server():
             register_button = tk.Button(auth_window, text="Register", command=handle_register)
             register_button.pack(pady=5)
 
-            auth_window.mainloop()
+        root.after(100, process_client)  # Check the queue every 100 ms
 
     threading.Thread(target=accept_connections, daemon=True).start()
-    threading.Thread(target=process_client, daemon=True).start()
+    root.after(100, process_client)  # Start the periodic check
 
     root.mainloop()
     server_socket.close()
